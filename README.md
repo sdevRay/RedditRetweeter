@@ -1,4 +1,4 @@
-# RedditRetweeter v0.1
+# RedditRetweeter v0.3
 
 C# Console app Reddit/Twitter bot [@Alpha_Retweeter](https://twitter.com/Alpha_Retweeter)
 
