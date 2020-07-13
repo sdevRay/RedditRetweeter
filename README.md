@@ -8,7 +8,7 @@ Libraries
 - [Reddit.NET](https://github.com/sirkris/Reddit.NET)
 - [Tweetinvi](https://github.com/linvi/tweetinvi)
 
-A predetermined limit of Reddit posts are pulled from a Joke subreddit, this content is formatted and saved to a text file in JSON format. 
+A predetermined limit of Reddit posts are pulled from a subreddit, this content is formatted and saved to a text file in JSON format. 
 A timer scans the file then pulls the contents so a single entry can be extracted. This entry is removed from the file and then formatted for a post to twitter. The title, body and credits are separate into different replies on the same post.
 
 ![RedditRetweeter Screenshot](https://github.com/sdevRay/sdevRay.github.io/blob/master/assets/redditretweeter.png?raw=true)
