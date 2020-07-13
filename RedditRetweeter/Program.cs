@@ -81,7 +81,7 @@ namespace RedditRetweeter
 				count++;
 			}
 			int timeframe = Convert.ToInt32(Console.ReadLine());
-			if (timeframe > count || timeframe < 0)
+			if (timeframe >= count || timeframe < 0)
 			{
 				Console.WriteLine("\nIncorrect selection\n");
 				SelectTimeFrame();
@@ -92,7 +92,7 @@ namespace RedditRetweeter
 
 		public int SelectTimeInterval()
 		{
-			Console.WriteLine("\nChose time interval in minutes (1 - 720 Minutes (12hrs))\nThis will be how often to post to Twitter");
+			Console.WriteLine("\nChose time interval in minutes (1 - 720 Minutes (12hrs))\nThis will be how often to post to Twitter (First post will be immediate)\n");
 			int interval = Convert.ToInt32(Console.ReadLine());
 			if (interval > 720 || interval < 1)
 			{
@@ -154,7 +154,11 @@ namespace RedditRetweeter
 				if (postDetail != null)
 					_twitter.ProcessTweet(postDetail);
 				else
+				{
+					Console.WriteLine("Unable to parse Reddit post\n");
 					Exit();
+				}
+				
 				
 				Console.WriteLine($"Removing Id: {postDetail.Id} from {_filePath}\n");
 				postDetailsFromFile.Remove(postDetail);
@@ -217,19 +221,22 @@ namespace RedditRetweeter
 			serializer.Serialize(file, postDetails);
 
 			if (postDetails.Count() == 0)
+			{
+				Console.WriteLine($"{_filePath} is empty. Terminating\n");	
 				Exit();
+			}
 		}
 
 		private void Exit()
 		{
-			Console.WriteLine($"{_filePath} is empty. Terminating");
-
 			if(aTimer != null)
 			{
 				aTimer.Stop();
 				aTimer.Dispose();
 			}
 
+			Console.WriteLine("Enter to exit\n");
+			Console.ReadLine();
 			Environment.Exit(0);
 		}
 	}
