@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Models;
+using Tweetinvi.Parameters;
 
 namespace RedditRetweeter
 {
@@ -72,6 +73,7 @@ namespace RedditRetweeter
 		{
 			Console.WriteLine("\nPosting Tweet");
 			ITweet initialTweet = null;
+			//PublishTweetParameters initialTweet = null;
 			foreach (var tweetStr in tweetDetails)
 			{
 				try
@@ -80,15 +82,24 @@ namespace RedditRetweeter
 						initialTweet = Tweet.PublishTweet(tweetStr);
 					else
 					{
-						var replyTweet = Tweet.PublishTweetInReplyTo(tweetStr, initialTweet);
-						initialTweet = replyTweet;
-					}
+						var reply = Tweet.PublishTweet(tweetStr, new PublishTweetOptionalParameters
+						{
+							InReplyToTweet = initialTweet
+						});
 
+						initialTweet = reply;
+					}
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine(ex.Message);
-				}	
+				}
+
+				if(initialTweet == null)
+				{
+					Console.WriteLine("Failed: Initial Tweet refused to post\n");
+					return;
+				}
 			}
 
 			Console.WriteLine("Success\n");

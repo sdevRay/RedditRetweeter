@@ -23,7 +23,7 @@ namespace RedditRetweeter
 		{
 			Console.WriteLine("RedditRetweeter v0.3");
 			Console.WriteLine("Pulls Reddit posts, saves content to file");
-			Console.WriteLine("Retrieves data from file and tweets it on interval\n");
+			Console.WriteLine("Retrieves data from file and Tweets it on interval\n");
 
 			GetUserInput();
 			Initialize();
