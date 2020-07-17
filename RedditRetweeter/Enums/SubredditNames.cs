@@ -3,6 +3,7 @@
 	public enum SubredditNames
 	{
 		DadJokes,
-		Jokes
+		Jokes,
+		Funny
 	}
 }

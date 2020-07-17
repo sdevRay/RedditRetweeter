@@ -9,16 +9,19 @@ namespace RedditRetweeter
 {
 	public class RedditFetcher
 	{
-		private const string REDDIT_APP_ID = "";
-		private const string REDDIT_TOKEN = "";
+		private const string REDDIT_APP_ID = Vault.REDDIT_APP_ID;
+		private const string REDDIT_TOKEN = Vault.REDDIT_TOKEN;
 		public RedditClient _client;
+		private readonly ILogger _logger;
 
-		public RedditFetcher()
+		public RedditFetcher(ILogger logger)
 		{
+			_logger = logger;
+
 			if (_client == null)
 				_client = new RedditClient(REDDIT_APP_ID, REDDIT_TOKEN);
-			Console.WriteLine("Logging into Reddit");
-			Console.WriteLine("Username: " + _client.Account.Me.Name + "\n");
+			_logger.Info("Logging into Reddit");
+			_logger.Info("Username: " + _client.Account.Me.Name + "\n");
 		}
 
 		public Subreddit GetSubreddit(SubredditNames subredditNames)
@@ -26,15 +29,13 @@ namespace RedditRetweeter
 			var js = Enum.GetName(typeof(SubredditNames), subredditNames);
 			Subreddit subreddit;
 			subreddit = _client.Subreddit(js).About();
-			return subreddit;		
+			return subreddit;
 		}
 
 		public IEnumerable<PostDetail> GetTopPosts(Subreddit subreddit, TimeFrame timeframe, int limit)
 		{
 			var tf = Enum.GetName(typeof(TimeFrame), timeframe);
-			Console.Write("********************\n");
-			Console.Write($"Fetching: r/{subreddit.Name}\nTopPost(s) count: {limit}\nTimeframe: {timeframe}\n");
-			Console.Write("********************");
+			_logger.Message($"Fetching {limit} r/{subreddit.Name} posts aggregated from {timeframe} timeframe");
 
 			var posts = subreddit.Posts.GetTop(new TimedCatSrListingInput(t: tf, limit: limit));
 			var postDetails = new List<PostDetail>();
@@ -48,20 +49,34 @@ namespace RedditRetweeter
 						Author = post.Author,
 						Subreddit = post.Subreddit,
 						Permalink = post.Permalink,
+						Domain = post.Listing.Domain,
 						Title = post.Title,
-						Body = post.Listing.IsSelf ? ((SelfPost)post).SelfText : "",
+						Body = post.Listing.IsSelf ? ((SelfPost)post).SelfText : ((LinkPost)post).URL,
+						IsText = post.Listing.IsSelf,
 						Created = post.Created,
 						UpVotes = post.UpVotes,
-						DownVotes = post.DownVotes			
+						DownVotes = post.DownVotes
 					});
 				}
 			}
 			else
 			{
-				Console.WriteLine($"There are no new posts from the last {timeframe}");
+				_logger.Message($"There are no new posts from the last {timeframe}");
 			}
 
-			return postDetails.Where(pd => !string.IsNullOrEmpty(pd.Body));
+			return ValidatePosts(postDetails);
+		}
+
+		private IEnumerable<PostDetail> ValidatePosts(IEnumerable<PostDetail> posts)
+		{
+			var domains = new List<string>() { "i.imgur.com", "i.redd.it" };
+			return posts.Where(pd => !string.IsNullOrEmpty(pd.Body)).Where(pd =>
+			{
+				if (!pd.IsText)
+					return domains.Contains(pd.Domain);
+
+				return true;
+			});
 		}
 	}
 }
