@@ -35,7 +35,7 @@ namespace RedditRetweeter
 		public IEnumerable<PostDetail> GetTopPosts(Subreddit subreddit, TimeFrame timeframe, int limit)
 		{
 			var tf = Enum.GetName(typeof(TimeFrame), timeframe);
-			_logger.Message($"Fetching {limit} r/{subreddit.Name} posts aggregated from {timeframe} timeframe");
+			_logger.Message($"Fetching {limit} posts from r/{subreddit.Name} aggregated by {timeframe} timeframe");
 
 			var posts = subreddit.Posts.GetTop(new TimedCatSrListingInput(t: tf, limit: limit));
 			var postDetails = new List<PostDetail>();

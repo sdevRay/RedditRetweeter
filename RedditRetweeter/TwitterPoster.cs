@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -19,11 +20,12 @@ namespace RedditRetweeter
 		private IAuthenticatedUser _user;
 		private readonly ILogger _logger;
 		private readonly IFileManager _fileManager;
-		private const string _trendFilePath = "trends.json";
+		private readonly string _trendFilePath;
 		private readonly Random _rand;
 
-		public TwitterPoster(ILogger logger, IFileManager fileManager)
+		public TwitterPoster(ILogger logger, IFileManager fileManager, string trendFilePath, bool appendTrend)
 		{
+			_trendFilePath = trendFilePath;
 			_fileManager = fileManager;
 			_logger = logger;
 
@@ -34,7 +36,8 @@ namespace RedditRetweeter
 			_logger.Info($"Username: {_user.Name} Screenname: @{_user.ScreenName}\n");
 			_rand = new Random();
 
-			FetchTwitterTrends();
+			if(appendTrend)
+				FetchTwitterTrends();
 		}
 
 		public void FetchTwitterTrends()
@@ -52,11 +55,15 @@ namespace RedditRetweeter
 			} 
 		}
 
-		public void ProcessTweet(PostDetail postDetail)
+		public bool ProcessTweet(PostDetail postDetail)
 		{
-			var trends = _fileManager.ReadFile<IEnumerable<string>>(_trendFilePath).ToArray();
-			var index = _rand.Next(trends.Count());
-			var trend = trends[index];
+			var trend = "";
+			if (File.Exists(_trendFilePath))
+			{
+				var trends = _fileManager.ReadFile<IEnumerable<string>>(_trendFilePath).ToArray();
+				var index = _rand.Next(trends.Count());
+				trend = trends[index];
+			}
 
 			_logger.Info($"Converting Reddit post to Tweet.. ");
 			_logger.Info($"Id: {postDetail.Id} UpVotes: {postDetail.UpVotes} DownVotes: {postDetail.DownVotes} Created: {postDetail.Created}\n");
@@ -68,10 +75,10 @@ namespace RedditRetweeter
 
 			var tweetDetails = title.Concat(body).Concat(detail);
 
-			PostTweet(tweetDetails.ToList(), postDetail);
+			return PostTweet(tweetDetails.ToList(), postDetail);
 		}
 
-		private void PostTweet(List<string> tweetDetails, PostDetail postDetail)
+		private bool PostTweet(List<string> tweetDetails, PostDetail postDetail)
 		{
 			_logger.Message("Posting Tweet");
 			ITweet initialTweet = null;
@@ -113,11 +120,13 @@ namespace RedditRetweeter
 
 				if (initialTweet == null)
 				{
-					_logger.Message("Failed: Initial Tweet refused to post\n");
+					_logger.Info("Failed: Initial Tweet refused to post\n");
+					return false;
 				}
 			}
 
 			_logger.Info("Success..\n");
+			return true;
 		}
 
 		private IMedia GetMediaToBytes(string url)

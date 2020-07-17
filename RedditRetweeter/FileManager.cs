@@ -51,5 +51,14 @@ namespace RedditRetweeter
 			var serializer = new JsonSerializer();
 			serializer.Serialize(file, details);
 		}
+
+		public void Delete(string filePath)
+		{
+			if (File.Exists(filePath))
+			{
+				_logger.Info($"Deleting {filePath}");
+				File.Delete(filePath);
+			}
+		}
 	}
 }

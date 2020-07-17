@@ -11,6 +11,7 @@ namespace RedditRetweeter
 		private RedditFetcher _reddit;
 		private TwitterPoster _twitter;
 		private const string _filePath = @"reddit_post.json";
+		private const string _trendFilePath = @"trends.json";
 		private int _limit;
 		private SubredditNames _sub;
 		private TimeFrame _timeframe;
@@ -18,6 +19,7 @@ namespace RedditRetweeter
 		private readonly IFileManager _fileManager;
 		private readonly ILogger _logger;
 		private const int MINUTE_MILLISECOND_CONVERSION = 60000;
+		private bool _appenTrend = false;
 
 		public Startup(IFileManager fileManager, ILogger logger)
 		{
@@ -27,26 +29,20 @@ namespace RedditRetweeter
 			_logger.Message("Reddit Retweeter v0.5");
 			_logger.Message("Pulls Reddit posts then Tweets them on interval\n");
 
-			//PurgeTwitterTimeline();
-
 			GetUserInput();
 			Initialize();
-		}
-
-		private void PurgeTwitterTimeline() // Run this to erase timeline and start fresh
-		{
-			_twitter = new TwitterPoster(_logger, _fileManager);
-			_twitter.BulkDelete();
 		}
 
 		private void GetUserInput()
 		{
 			try
 			{
+				SelectPurge();
 				_sub = SelectSubreddit();
 				_limit = SelectFetchLimit();
 				_timeframe = SelectTimeFrame();
 				_interval = SelectTimeInterval();
+				SelectAppendTrend();
 			}
 			catch (FormatException ex)
 			{
@@ -55,7 +51,36 @@ namespace RedditRetweeter
 			}
 		}
 
-		public SubredditNames SelectSubreddit()
+		private void SelectPurge()
+		{
+			_logger.Message("Purge Twitter timeline? [Y/N]");
+			var line = Console.ReadLine();
+			if (line[0] == 'y' || line[0] == 'Y')
+			{
+				PurgeTwitterTimeline();
+				Exit();
+			}
+		}
+
+		private void PurgeTwitterTimeline() // Run this to erase timeline and start fresh
+		{
+			_twitter = new TwitterPoster(_logger, _fileManager, _trendFilePath, _appenTrend);
+			_twitter.BulkDelete();
+		}
+
+		private void SelectAppendTrend()
+		{
+			_logger.Message("Append trending hashtags to Twitter post? [Y/N]");
+			var line = Console.ReadLine();
+			if (line[0] == 'y' || line[0] == 'Y')
+				_appenTrend = true;
+			else if (line[0] == 'n' || line[0] == 'N')
+				_appenTrend = false;
+			else
+				SelectAppendTrend();
+		}
+
+		private SubredditNames SelectSubreddit()
 		{
 			_logger.Message("Select Subreddit");
 			var jsNames = Enum.GetNames(typeof(SubredditNames));
@@ -74,7 +99,7 @@ namespace RedditRetweeter
 
 			return (SubredditNames)sub;
 		}
-		public TimeFrame SelectTimeFrame()
+		private TimeFrame SelectTimeFrame()
 		{
 			_logger.Message("How far back to collect posts from Reddit?");
 			var tfNames = Enum.GetNames(typeof(TimeFrame));
@@ -94,7 +119,7 @@ namespace RedditRetweeter
 			return (TimeFrame)timeframe;
 		}
 
-		public int SelectFetchLimit()
+		private int SelectFetchLimit()
 		{
 			_logger.Message("How many posts to pull from Reddit [1 - 100]");
 			int limit = Convert.ToInt32(Console.ReadLine());
@@ -107,7 +132,7 @@ namespace RedditRetweeter
 			return limit;
 		}
 
-		public int SelectTimeInterval()
+		private int SelectTimeInterval()
 		{
 			_logger.Message("Time interval in minutes to post to Twitter? (First post will be immediate)");
 			int interval = Convert.ToInt32(Console.ReadLine());
@@ -125,11 +150,11 @@ namespace RedditRetweeter
 			try
 			{
 				_reddit = new RedditFetcher(_logger);
-				_twitter = new TwitterPoster(_logger, _fileManager);
+				_twitter = new TwitterPoster(_logger, _fileManager, _trendFilePath, _appenTrend);
 
 				var posts = _reddit.GetTopPosts(_reddit.GetSubreddit(_sub), _timeframe, _limit);
 				_fileManager.SaveFile(posts, _filePath, true);
-				_logger.Message("Successfully setup configuration\n");
+				_logger.Message("\nSuccessfully setup configuration\n");
 			}
 			catch (Exception ex)
 			{
@@ -149,20 +174,24 @@ namespace RedditRetweeter
 
 			try
 			{
+				bool success = false;
 				var postDetailsFromFile = _fileManager.ReadFile<IEnumerable<PostDetail>>(_filePath).ToList();
 				_logger.Message($"Found {postDetailsFromFile.Count()} posts from {_filePath}");
 				var postDetail = postDetailsFromFile.FirstOrDefault();
 
 				if (postDetail != null)
-					_twitter.ProcessTweet(postDetail);
+					success = _twitter.ProcessTweet(postDetail);
 				else
 					Exit();
 
 				_logger.Message($"Removing Id: {postDetail.Id} from {_filePath}");
 				postDetailsFromFile.Remove(postDetail);
-
 				_fileManager.SaveFile(postDetailsFromFile, _filePath);
-				_logger.Message($"\nWaiting {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s) for next iteration..");
+				if (success)
+					_logger.Message($"\nWaiting {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s) for next iteration..");
+				else
+					Process(DateTime.Now);
+
 			}
 			catch (Exception ex)
 			{
@@ -172,22 +201,20 @@ namespace RedditRetweeter
 
 		private void StartTimer()
 		{
-			ConsoleKeyInfo input;
-			do
+			_logger.Message("Starting timer");
+
+			aTimer = new Timer
 			{
-				aTimer = new Timer
-				{
-					Interval = _interval
-				};
+				Interval = _interval
+			};
 
-				aTimer.Elapsed += OnTimedEvent;
-				aTimer.AutoReset = true;
-				aTimer.Enabled = true;
+			aTimer.Elapsed += OnTimedEvent;
+			aTimer.AutoReset = true;
+			aTimer.Enabled = true;
 
-				_logger.Message($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s). Press ESC to exit at anytime\n");
-				input = Console.ReadKey();
-			} while (input.Key != ConsoleKey.Escape || input.Key != ConsoleKey.Enter);
-			
+			_logger.Message($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s). Press Enter to exit at anytime\n");
+
+			Console.ReadLine();
 			Exit();
 		}
 
@@ -198,11 +225,18 @@ namespace RedditRetweeter
 
 		private void Exit()
 		{
+			var files = new string[] { _filePath, _trendFilePath };
+
 			_logger.Message("Exiting..");
-			if(aTimer != null)
+			if (aTimer != null)
 			{
 				aTimer.Stop();
 				aTimer.Dispose();
+			}
+
+			foreach(var file in files)
+			{
+				_fileManager.Delete(file);
 			}
 
 			_fileManager.SaveFile(_logger.GetLogs(), "logs.txt", true);
