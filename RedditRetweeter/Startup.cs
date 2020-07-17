@@ -186,7 +186,7 @@ namespace RedditRetweeter
 
 				_logger.Message($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s). Press ESC to exit at anytime\n");
 				input = Console.ReadKey();
-			} while (input.Key != ConsoleKey.Escape);
+			} while (input.Key != ConsoleKey.Escape || input.Key != ConsoleKey.Enter);
 			
 			Exit();
 		}

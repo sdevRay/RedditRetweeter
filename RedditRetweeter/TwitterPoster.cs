@@ -73,7 +73,7 @@ namespace RedditRetweeter
 
 		private void PostTweet(List<string> tweetDetails, PostDetail postDetail)
 		{
-			_logger.Message("Posting Tweet\n");
+			_logger.Message("Posting Tweet");
 			ITweet initialTweet = null;
 			foreach (var tweetStr in tweetDetails)
 			{
@@ -117,7 +117,7 @@ namespace RedditRetweeter
 				}
 			}
 
-			_logger.Info("Success..");
+			_logger.Info("Success..\n");
 		}
 
 		private IMedia GetMediaToBytes(string url)
