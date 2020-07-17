@@ -66,8 +66,6 @@ namespace RedditRetweeter
 			}
 
 			_logger.Info($"Converting Reddit post to Tweet.. ");
-			_logger.Info($"Id: {postDetail.Id} UpVotes: {postDetail.UpVotes} DownVotes: {postDetail.DownVotes} Created: {postDetail.Created}\n");
-
 			var title = StringSplitter(postDetail.Title, CHARACTER_LIMIT);
 			var body = StringSplitter(postDetail.Body, CHARACTER_LIMIT);
 			var detailString = "Subreddit: r/" + postDetail.Subreddit + " Author: u/" + postDetail.Author + " http://redd.it/" + postDetail.Id + " .. " + trend;
@@ -80,7 +78,8 @@ namespace RedditRetweeter
 
 		private bool PostTweet(List<string> tweetDetails, PostDetail postDetail)
 		{
-			_logger.Message("Posting Tweet");
+			_logger.Info($"Posting Tweet Id: {postDetail.Id}");
+			_logger.Message($"UpVotes: {postDetail.UpVotes} DownVotes: {postDetail.DownVotes} Created: {postDetail.Created}");
 			ITweet initialTweet = null;
 			foreach (var tweetStr in tweetDetails)
 			{

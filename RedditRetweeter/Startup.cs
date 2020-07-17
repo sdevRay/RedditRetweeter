@@ -176,7 +176,7 @@ namespace RedditRetweeter
 			{
 				bool success = false;
 				var postDetailsFromFile = _fileManager.ReadFile<IEnumerable<PostDetail>>(_filePath).ToList();
-				_logger.Message($"Found {postDetailsFromFile.Count()} posts from {_filePath}");
+				_logger.Message($"Found {postDetailsFromFile.Count()} posts in {_filePath}");
 				var postDetail = postDetailsFromFile.FirstOrDefault();
 
 				if (postDetail != null)
