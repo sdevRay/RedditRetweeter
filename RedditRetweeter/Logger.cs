@@ -7,6 +7,7 @@ namespace RedditRetweeter
 	public class Logger : ILogger
 	{
 		private readonly List<string> Logging = new List<string>();
+		private readonly string LogPrefix = $"[{DateTime.Now}]: ";
 
 		public void Message (string message)
 		{
@@ -15,8 +16,8 @@ namespace RedditRetweeter
 
 		public void Info(string message)
 		{
-			WriteToConsole(message);
-			var msg = $"[{DateTime.Now}]: {message}"; 
+			var msg = LogPrefix + message;
+			WriteToConsole(msg);
 			Logging.Add(msg);
 		}
 

@@ -16,7 +16,7 @@ namespace RedditRetweeter
 
 		public T ReadFile<T>(string filePath) 
 		{
-			_logger.Message($"Reading {filePath}");
+			_logger.Info($"Reading {filePath}");
 			try
 			{
 				var serializer = new JsonSerializer();
@@ -46,7 +46,7 @@ namespace RedditRetweeter
 
 			sb.Append($"{filePath}");
 
-			_logger.Message(sb.ToString());
+			_logger.Info(sb.ToString());
 			using StreamWriter file = new StreamWriter(filePath, false);
 			var serializer = new JsonSerializer();
 			serializer.Serialize(file, details);

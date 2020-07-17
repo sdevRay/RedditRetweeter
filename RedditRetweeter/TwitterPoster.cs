@@ -44,7 +44,7 @@ namespace RedditRetweeter
 		{
 			try
 			{
-				_logger.Message("Fetching top Twitter trends..");
+				_logger.Info("Fetching top Twitter trends..");
 				var details = Trends.GetTrendsAt(1).Trends.Select(t => t.Name);
 				_fileManager.SaveFile(details, _trendFilePath, true);
 			} 
@@ -79,7 +79,7 @@ namespace RedditRetweeter
 		private bool PostTweet(List<string> tweetDetails, PostDetail postDetail)
 		{
 			_logger.Info($"Posting Tweet Id: {postDetail.Id}");
-			_logger.Message($"UpVotes: {postDetail.UpVotes} DownVotes: {postDetail.DownVotes} Created: {postDetail.Created}");
+			_logger.Info($"UpVotes: {postDetail.UpVotes} DownVotes: {postDetail.DownVotes}");
 			ITweet initialTweet = null;
 			foreach (var tweetStr in tweetDetails)
 			{
@@ -166,7 +166,7 @@ namespace RedditRetweeter
 		}
 		public void BulkDelete() // This will purge the whole timeline
 		{
-			_logger.Message("Bulk deleting all posts from user timeline..");
+			_logger.Info("Bulk deleting all posts from user timeline..");
 			RateLimit.RateLimitTrackerMode = RateLimitTrackerMode.TrackAndAwait;
 			var tweetsToDestroy = Timeline.GetUserTimeline(_user, 3200).ToArray();
 
@@ -190,7 +190,7 @@ namespace RedditRetweeter
 				}
 			}
 
-			_logger.Message("Success");
+			_logger.Info("Success");
 		}
 	}
 }

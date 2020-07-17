@@ -28,6 +28,7 @@ namespace RedditRetweeter
 
 			_logger.Message("Reddit Retweeter v0.5");
 			_logger.Message("Pulls Reddit posts then Tweets them on interval\n");
+			_logger.Message("Only supports text and images\n");
 
 			GetUserInput();
 			Initialize();
@@ -58,7 +59,7 @@ namespace RedditRetweeter
 			if (line[0] == 'y' || line[0] == 'Y')
 			{
 				PurgeTwitterTimeline();
-				Exit();
+				ShutDown();
 			}
 		}
 
@@ -154,13 +155,13 @@ namespace RedditRetweeter
 
 				var posts = _reddit.GetTopPosts(_reddit.GetSubreddit(_sub), _timeframe, _limit);
 				_fileManager.SaveFile(posts, _filePath, true);
-				_logger.Message("\nSuccessfully setup configuration\n");
+				_logger.Info("Successfully setup configuration\n");
 			}
 			catch (Exception ex)
 			{
 				_logger.Info("Error: " + ex.Message);
 				_logger.Info(ex.StackTrace);
-				Exit();
+				ShutDown();
 			}
 
 			Process(DateTime.Now);
@@ -170,38 +171,38 @@ namespace RedditRetweeter
 		private void Process(DateTime signalTime)
 		{
 			_logger.Info($"Process started at {signalTime}");
-			_logger.Message("--------------------------------");
+			_logger.Info("--------------------------------\n");
 
 			try
 			{
 				bool success = false;
 				var postDetailsFromFile = _fileManager.ReadFile<IEnumerable<PostDetail>>(_filePath).ToList();
-				_logger.Message($"Found {postDetailsFromFile.Count()} posts in {_filePath}");
+				_logger.Info($"Found {postDetailsFromFile.Count()} posts in {_filePath}\n");
 				var postDetail = postDetailsFromFile.FirstOrDefault();
 
 				if (postDetail != null)
 					success = _twitter.ProcessTweet(postDetail);
 				else
-					Exit();
+					ShutDown();
 
-				_logger.Message($"Removing Id: {postDetail.Id} from {_filePath}");
+				_logger.Info($"Removing Id: {postDetail.Id} from {_filePath}");
 				postDetailsFromFile.Remove(postDetail);
 				_fileManager.SaveFile(postDetailsFromFile, _filePath);
 				if (success)
-					_logger.Message($"\nWaiting {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s) for next iteration..");
+					_logger.Info($"Waiting {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s) for next iteration..");
 				else
 					Process(DateTime.Now);
 
 			}
 			catch (Exception ex)
 			{
-				_logger.Message("Error: " + ex.Message);
+				_logger.Info("Error: " + ex.Message);
 			}
 		}
 
 		private void StartTimer()
 		{
-			_logger.Message("Starting timer");
+			_logger.Info("Starting timer");
 
 			aTimer = new Timer
 			{
@@ -212,10 +213,10 @@ namespace RedditRetweeter
 			aTimer.AutoReset = true;
 			aTimer.Enabled = true;
 
-			_logger.Message($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s), press Enter to stop at anytime\n");
+			_logger.Info($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s), press Enter to stop at anytime\n");
 
 			Console.ReadLine();
-			Exit();
+			ShutDown();
 		}
 
 		private void OnTimedEvent(Object source, ElapsedEventArgs e)
@@ -223,11 +224,11 @@ namespace RedditRetweeter
 			Process(e.SignalTime);
 		}
 
-		private void Exit()
+		private void ShutDown()
 		{
 			var files = new string[] { _filePath, _trendFilePath };
 
-			_logger.Message("Shutting down..");
+			_logger.Info("Shutting down..");
 			if (aTimer != null)
 			{
 				aTimer.Stop();

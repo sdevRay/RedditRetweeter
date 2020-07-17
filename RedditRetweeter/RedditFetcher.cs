@@ -35,7 +35,7 @@ namespace RedditRetweeter
 		public IEnumerable<PostDetail> GetTopPosts(Subreddit subreddit, TimeFrame timeframe, int limit)
 		{
 			var tf = Enum.GetName(typeof(TimeFrame), timeframe);
-			_logger.Message($"Fetching {limit} posts from r/{subreddit.Name} aggregated by {timeframe} timeframe");
+			_logger.Info($"Fetching {limit} posts from r/{subreddit.Name} aggregated by {timeframe} timeframe");
 
 			var posts = subreddit.Posts.GetTop(new TimedCatSrListingInput(t: tf, limit: limit));
 			var postDetails = new List<PostDetail>();
@@ -61,22 +61,25 @@ namespace RedditRetweeter
 			}
 			else
 			{
-				_logger.Message($"There are no new posts from the last {timeframe}");
+				_logger.Info($"There are no new posts from the last {timeframe}");
 			}
 
 			return ValidatePosts(postDetails);
 		}
 
-		private IEnumerable<PostDetail> ValidatePosts(IEnumerable<PostDetail> posts)
+		private IEnumerable<PostDetail> ValidatePosts(IEnumerable<PostDetail> postDetails)
 		{
 			var domains = new List<string>() { "i.imgur.com", "i.redd.it" };
-			return posts.Where(pd => !string.IsNullOrEmpty(pd.Body)).Where(pd =>
+			var posts = postDetails.Where(pd => !string.IsNullOrEmpty(pd.Body)).Where(pd =>
 			{
 				if (!pd.IsText)
 					return domains.Contains(pd.Domain);
 
 				return true;
 			});
+
+			_logger.Info($"{posts.Count()} posts succesfully validated");
+			return posts;
 		}
 	}
 }
