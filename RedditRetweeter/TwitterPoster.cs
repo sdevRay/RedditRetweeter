@@ -70,7 +70,7 @@ namespace RedditRetweeter
 
 			var title = StringSplitter(postDetail.Title, CHARACTER_LIMIT);
 			var body = StringSplitter(postDetail.Body, CHARACTER_LIMIT);
-			var detailString = "Subreddit: r/" + postDetail.Subreddit + " Author: u/" + postDetail.Author + " http://redd.it/" + postDetail.Id + "  .." + trend;
+			var detailString = "Subreddit: r/" + postDetail.Subreddit + " Author: u/" + postDetail.Author + " http://redd.it/" + postDetail.Id + " .. " + trend;
 			var detail = StringSplitter(detailString, CHARACTER_LIMIT);
 
 			var tweetDetails = title.Concat(body).Concat(detail);
