@@ -212,7 +212,7 @@ namespace RedditRetweeter
 			aTimer.AutoReset = true;
 			aTimer.Enabled = true;
 
-			_logger.Message($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s). Press Enter to stop at anytime\n");
+			_logger.Message($"Executing every {_interval / MINUTE_MILLISECOND_CONVERSION} minute(s), press Enter to stop at anytime\n");
 
 			Console.ReadLine();
 			Exit();
@@ -227,7 +227,7 @@ namespace RedditRetweeter
 		{
 			var files = new string[] { _filePath, _trendFilePath };
 
-			_logger.Message("Exiting..");
+			_logger.Message("Shutting down..");
 			if (aTimer != null)
 			{
 				aTimer.Stop();
@@ -240,7 +240,7 @@ namespace RedditRetweeter
 			}
 
 			_fileManager.SaveFile(_logger.GetLogs(), "logs.txt", true);
-			_logger.Message("Press Enter to Exit..\n");
+			_logger.Message("Press Enter to Exit\n");
 			Console.ReadLine();
 			Environment.Exit(0);
 		}
