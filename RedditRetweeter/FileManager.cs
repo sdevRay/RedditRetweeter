@@ -16,7 +16,6 @@ namespace RedditRetweeter
 
 		public T ReadFile<T>(string filePath) 
 		{
-			_logger.Info($"Reading {filePath}");
 			try
 			{
 				var serializer = new JsonSerializer();
@@ -32,21 +31,12 @@ namespace RedditRetweeter
 
 		public void SaveFile<T>(IEnumerable<T> details, string filePath, bool initial = false)
 		{
-			var sb = new StringBuilder();
-
 			if (initial)
 			{
 				if (File.Exists(filePath))
 					File.Delete(filePath);
-
-				sb.Append("Creating ");
 			}
-			else
-				sb.Append("Writing ");
 
-			sb.Append($"{filePath}");
-
-			_logger.Info(sb.ToString());
 			using StreamWriter file = new StreamWriter(filePath, false);
 			var serializer = new JsonSerializer();
 			serializer.Serialize(file, details);
@@ -56,7 +46,6 @@ namespace RedditRetweeter
 		{
 			if (File.Exists(filePath))
 			{
-				_logger.Info($"Deleting {filePath}");
 				File.Delete(filePath);
 			}
 		}

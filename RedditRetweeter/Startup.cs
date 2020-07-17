@@ -27,7 +27,7 @@ namespace RedditRetweeter
 			_logger = logger;
 
 			_logger.Message("Reddit Retweeter v0.5");
-			_logger.Message("Pulls Reddit posts then Tweets them on interval\n");
+			_logger.Message("Pulls Reddit posts then Tweets them on interval");
 			_logger.Message("Only supports text and images\n");
 
 			GetUserInput();
