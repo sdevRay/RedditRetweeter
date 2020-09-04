@@ -1,6 +1,6 @@
 # RedditRetweeter v0.5
 
-C# Console app Reddit/Twitter bot [@Alpha_Retweeter](https://twitter.com/Alpha_Retweeter)
+C# Console app Reddit/Twitter bot
 
 This project was an experiment at using libraries and APIs with C#. It retrieves Reddit data saves it to a file, then retrieves it on interval and tweets it to Twitter.
 
